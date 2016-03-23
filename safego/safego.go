@@ -20,7 +20,7 @@ with safego, you can replace with:
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		sofego.Go(func() {
 			panic("OMG!")
-		}(), nil)
+		})
 	})
 	http.ListenAndServe(":8080", nil)
 
