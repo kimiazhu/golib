@@ -153,7 +153,6 @@ func (m *MySQLStore) New(r *http.Request, name string) (*sessions.Session, error
 			}
 		}
 	}
-	fmt.Printf("++++++++++%v\n", session.Options)
 	return session, err
 }
 
@@ -191,7 +190,6 @@ func (m *MySQLStore) insert(session *sessions.Session) error {
 	} else {
 		expiresOn = exOn.(time.Time)
 	}
-	fmt.Printf("---------------%v\n", session.Options)
 	delete(session.Values, "created_on")
 	delete(session.Values, "expires_on")
 	delete(session.Values, "modified_on")

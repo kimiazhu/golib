@@ -1,12 +1,14 @@
 mysqlstore
 ==========
 
-Gorilla's Session Store Implementation for MySQL
+Gorilla's Session Store Implementation for MySQL.
+
+this copy is based on [srinathgs/mysqlstore](http://github.com/srinathgs/mysqlstore)
 
 Installation
 ===========
 
-Run `go get github.com/srinathgs/mysqlstore` from command line. Gets installed in `$GOPATH`
+Run `go get github.com/kimiazhu/sessions/mysqlstore` from command line. Gets installed in `$GOPATH`
 
 Usage
 =====
@@ -28,7 +30,7 @@ e.g.,
   
       import (
   	    "fmt"
-  	    "github.com/srinathgs/mysqlstore"
+  	    "github.com/kimiazhu/sessions/mysqlstore"
   	    "net/http"
       )
   
