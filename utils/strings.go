@@ -1,4 +1,4 @@
-// Description: utils/strings
+// Description: utils/strings.go
 // Author: ZHU HAIHUA
 // Since: 2016-04-08 19:45
 package util
@@ -34,7 +34,11 @@ func ToJson(obj interface{}) string {
 //      Type{name=value}
 //
 // otherwise the short format will only print the value but not type
-// and name information
+// and name information.
+//
+// since recursive call, this method would be pretty slow, so if you
+// use it to print log, may be you need to check if the log level is
+// enabled first
 func ReflectToString(obj interface{}, style Style) string {
 	var result string
 	switch style {
