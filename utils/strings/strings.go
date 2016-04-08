@@ -22,7 +22,6 @@ func ToJson(obj interface{}) string {
 }
 
 func ReflectToString(obj interface{}) string {
-	fmt.Printf("========%v\n", ValueOf(obj).Type().Field(2).Name)
 	return valueToString(ValueOf(obj))
 }
 
@@ -92,6 +91,8 @@ func valueToString(val Value) string {
 			if i > 0 {
 				str += ", "
 			}
+			str += val.Type().Field(i).Name
+			str += "="
 			str += valueToString(v.Field(i))
 		}
 		str += "}"
