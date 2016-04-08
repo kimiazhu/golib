@@ -1,13 +1,20 @@
 // Description: utils/strings
 // Author: ZHU HAIHUA
 // Since: 2016-04-08 19:45
-package strings
+package util
 
 import (
 	"encoding/json"
 	"strconv"
 	"fmt"
 	. "reflect"
+)
+
+type Style int
+
+const (
+	StyleShort Style = iota
+	StyleLong
 )
 
 // ToJson return the json format of the obj
@@ -21,10 +28,25 @@ func ToJson(obj interface{}) string {
 	return string(result)
 }
 
-func ReflectToString(obj interface{}) string {
-	return valueToString(ValueOf(obj))
+// ReflectToString return the string format of the given argument,
+// the long style may be a very long format like following:
+//
+//      Type{name=value}
+//
+// otherwise the short format will only print the value but not type
+// and name information
+func ReflectToString(obj interface{}, style Style) string {
+	var result string
+	switch style {
+	case StyleShort:
+		result = fmt.Sprintf("%v", obj)
+	case StyleLong:
+		result = valueToString(ValueOf(obj))
+	}
+	return result
 }
 
+// valueToString recursively print all the value
 func valueToString(val Value) string {
 
 	var str string
@@ -76,7 +98,16 @@ func valueToString(val Value) string {
 		t := typ
 		str = t.String()
 		str += "{"
-		str += "<can't iterate on maps>"
+		//str += "<can't iterate on maps>"
+		keys := val.MapKeys()
+		for i, _ := range keys {
+			if i > 0 {
+				str += ","
+			}
+			str += valueToString(keys[i])
+			str += "="
+			str += valueToString(val.MapIndex(keys[i]))
+		}
 		str += "}"
 		return str
 	case Chan:
