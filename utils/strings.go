@@ -14,6 +14,7 @@ type Style int
 
 const (
 	StyleShort Style = iota
+	StyleMedium
 	StyleLong
 )
 
@@ -29,30 +30,43 @@ func ToJson(obj interface{}) string {
 }
 
 // ReflectToString return the string format of the given argument,
+// the default style is StyleMedium
+//
 // the long style may be a very long format like following:
 //
 //      Type{name=value}
 //
-// otherwise the short format will only print the value but not type
+// and the medium style would like:
+//
+//      {key=value}
+//
+// otherwise the short format will only print the value but no type
 // and name information.
 //
 // since recursive call, this method would be pretty slow, so if you
 // use it to print log, may be you need to check if the log level is
 // enabled first
-func ReflectToString(obj interface{}, style Style) string {
+func ReflectToString(obj interface{}, args ...Style) string {
+	style := StyleMedium
+	if len(args) > 0 {
+		style = args[0]
+	}
+
 	var result string
 	switch style {
 	case StyleShort:
 		result = fmt.Sprintf("%v", obj)
-	case StyleLong:
-		result = valueToString(ValueOf(obj))
+	case StyleMedium, StyleLong:
+		result = valueToString(ValueOf(obj), style)
 	}
 	return result
 }
 
 // valueToString recursively print all the value
-func valueToString(val Value) string {
-
+func valueToString(val Value, style Style) string {
+	if style == StyleShort {
+		return "<not suitable for short style>"
+	}
 	var str string
 	if !val.IsValid() {
 		return "<zero Value>"
@@ -78,29 +92,37 @@ func valueToString(val Value) string {
 		}
 	case Ptr:
 		v := val
-		str = typ.String() + "("
+		if style == StyleLong {
+			str = typ.String() + "("
+		} else {
+			str = "("
+		}
 		if v.IsNil() {
 			str += "0"
 		} else {
-			str += "&" + valueToString(v.Elem())
+			str += "&" + valueToString(v.Elem(), style)
 		}
 		str += ")"
 		return str
 	case Array, Slice:
 		v := val
-		str += typ.String()
+		if style == StyleLong {
+			str += typ.String()
+		}
 		str += "{"
 		for i := 0; i < v.Len(); i++ {
 			if i > 0 {
 				str += ", "
 			}
-			str += valueToString(v.Index(i))
+			str += valueToString(v.Index(i), style)
 		}
 		str += "}"
 		return str
 	case Map:
 		t := typ
-		str = t.String()
+		if style == StyleLong{
+			str = t.String()
+		}
 		str += "{"
 		//str += "<can't iterate on maps>"
 		keys := val.MapKeys()
@@ -108,19 +130,23 @@ func valueToString(val Value) string {
 			if i > 0 {
 				str += ","
 			}
-			str += valueToString(keys[i])
+			str += valueToString(keys[i], style)
 			str += "="
-			str += valueToString(val.MapIndex(keys[i]))
+			str += valueToString(val.MapIndex(keys[i]), style)
 		}
 		str += "}"
 		return str
 	case Chan:
-		str = typ.String()
+		if style == StyleLong {
+			str = typ.String()
+		}
 		return str
 	case Struct:
 		t := typ
 		v := val
-		str += t.String()
+		if style == StyleLong {
+			str += t.String()
+		}
 		str += "{"
 		for i, n := 0, v.NumField(); i < n; i++ {
 			if i > 0 {
@@ -128,15 +154,23 @@ func valueToString(val Value) string {
 			}
 			str += val.Type().Field(i).Name
 			str += "="
-			str += valueToString(v.Field(i))
+			str += valueToString(v.Field(i), style)
 		}
 		str += "}"
 		return str
 	case Interface:
-		return typ.String() + "(" + valueToString(val.Elem()) + ")"
+		t := ""
+		if style == StyleLong{
+			t = typ.String()
+		}
+		return t + "(" + valueToString(val.Elem(), style) + ")"
 	case Func:
 		v := val
-		return typ.String() + "(" + strconv.FormatUint(uint64(v.Pointer()), 10) + ")"
+		t := ""
+		if style == StyleLong{
+			t = typ.String()
+		}
+		return t + "(" + strconv.FormatUint(uint64(v.Pointer()), 10) + ")"
 	default:
 		panic("valueToString: can't print type " + typ.String())
 	}
