@@ -45,10 +45,6 @@ func ToString(obj interface{}, args ...interface{}) string {
 }
 
 const (
-	commaAndSpace = ", "
-	comma         = ","
-	equals        = "="
-
 	// the NONE used to set an empty boundary or separator.
 	// e.g: you want to set the output of slice with no boundary,
 	// you NEED to set Conf as:
@@ -57,62 +53,40 @@ const (
 	//          BoundaryArrayAndSliceStart: NONE, // NOT ""
 	//          BoundaryArrayAndSliceEnd: NONE, // NOT ""
 	//      }
-	NONE = "<none>"
+	NONE string = "<none>"
 )
 
 type StringConf struct {
-	SepElem     string
-	SepField    string
-	SepKeyValue string
+	SepElem     string `defaults:","`
+	SepField    string `defaults:", "`
+	SepKeyValue string `defaults:"="`
 
-	BoundaryStructStart      string
-	BoundaryStructEnd        string
-	BoundaryMapStart         string
-	BoundaryMapEnd           string
-	BoundaryArraySliceStart  string
-	BoundaryArraySliceEnd    string
-	BoundaryPointerFuncStart string
-	BoundaryPointerFuncEnd   string
-	BoundaryInterfaceStart   string
-	BoundaryInterfaceEnd     string
+	BoundaryStructStart      string `defaults:"{"`
+	BoundaryStructEnd        string `defaults:"}"`
+	BoundaryMapStart         string `defaults:"{"`
+	BoundaryMapEnd           string `defaults:"}"`
+	BoundaryArraySliceStart  string `defaults:"["`
+	BoundaryArraySliceEnd    string `defaults:"]"`
+	BoundaryPointerFuncStart string `defaults:"("`
+	BoundaryPointerFuncEnd   string `defaults:")"`
+	BoundaryInterfaceStart   string `defaults:"("`
+	BoundaryInterfaceEnd     string `defaults:")"`
 }
 
-var global *StringConf = &StringConf{
-	SepElem:     comma,
-	SepField:    commaAndSpace,
-	SepKeyValue: equals,
-
-	BoundaryStructStart:      "{",
-	BoundaryStructEnd:        "}",
-	BoundaryMapStart:         "{",
-	BoundaryMapEnd:           "}",
-	BoundaryArraySliceStart:  "[",
-	BoundaryArraySliceEnd:    "]",
-	BoundaryPointerFuncStart: "(",
-	BoundaryPointerFuncEnd:   ")",
-	BoundaryInterfaceStart:   "(",
-	BoundaryInterfaceEnd:     ")",
-}
-
-// updateConfig will update the global configuration using the given conf.
-// any empty config field will be ignored, so if you really want to set a
-// config value to be an empty string, you need to set it to be const NONE, l
-// ike this:
-//
-//      &Conf {
-//          BoundaryArrayAndSliceStart: NONE, // DO NOT SET TO: ""
-//          BoundaryArrayAndSliceEnd: NONE, // DO NOT SET TO: ""
-//      }
-func updateConfig(conf *StringConf) {
-	arg := ValueOf(conf).Elem()
-	gcnf := ValueOf(global).Elem()
-	for i := 0; i < arg.NumField(); i++ {
-		av := arg.Field(i).String()
-		if av == NONE {
-			gcnf.Field(i).SetString("")
-		} else if av != "" {
-			gcnf.Field(i).SetString(av)
+// v return the value of StringConf by given key
+func (conf *StringConf) v(name string) string {
+	cnf := ValueOf(conf).Elem()
+	if field, ok := cnf.Type().FieldByName(name); ok {
+		value := cnf.FieldByName(name).String()
+		if value == NONE {
+			return ""
+		} else if value == "" {
+			return field.Tag.Get("defaults")
+		} else {
+			return cnf.FieldByName(name).String()
 		}
+	} else {
+		panic(fmt.Errorf("<no such key: %s>", name))
 	}
 }
 
@@ -151,20 +125,19 @@ func updateConfig(conf *StringConf) {
 //   - ReflectToString(input, StringStyleLong, &StringConf{SepField:","})
 func ReflectToString(obj interface{}, args ...interface{}) string {
 	style := StringStyleMedium
+	cnf := &StringConf{}
 	switch len(args) {
 	case 1:
 		style = args[0].(StringStyle)
 	case 2:
 		style = args[0].(StringStyle)
-		cnf := args[1].(*StringConf)
-		updateConfig(cnf)
+		cnf = args[1].(*StringConf)
 	}
-
-	return valueToString(ValueOf(obj), style)
+	return valueToString(ValueOf(obj), style, cnf)
 }
 
 // valueToString recursively print all the value
-func valueToString(val Value, style StringStyle) string {
+func valueToString(val Value, style StringStyle, cnf *StringConf) string {
 	//if style == StyleShort {
 	//	return "<not suitable for short style>"
 	//}
@@ -194,15 +167,15 @@ func valueToString(val Value, style StringStyle) string {
 	case Ptr:
 		v := val
 		if style == StringStyleLong {
-			str += typ.String() + global.BoundaryPointerFuncStart
+			str += typ.String() + cnf.v("BoundaryPointerFuncStart")
 		}
 		if v.IsNil() {
 			str += "0"
 		} else {
-			str += "&" + valueToString(v.Elem(), style)
+			str += "&" + valueToString(v.Elem(), style, cnf)
 		}
 		if style == StringStyleLong {
-			str += global.BoundaryPointerFuncEnd
+			str += cnf.v("BoundaryPointerFuncEnd")
 		}
 		return str
 	case Array, Slice:
@@ -210,32 +183,32 @@ func valueToString(val Value, style StringStyle) string {
 		if style == StringStyleLong {
 			str += typ.String()
 		}
-		str += global.BoundaryArraySliceStart
+		str += cnf.v("BoundaryArraySliceStart")
 		for i := 0; i < v.Len(); i++ {
 			if i > 0 {
-				str += global.SepElem
+				str += cnf.v("SepElem")
 			}
-			str += valueToString(v.Index(i), style)
+			str += valueToString(v.Index(i), style, cnf)
 		}
-		str += global.BoundaryArraySliceEnd
+		str += cnf.v("BoundaryArraySliceEnd")
 		return str
 	case Map:
 		t := typ
 		if style == StringStyleLong {
 			str += t.String()
 		}
-		str += global.BoundaryMapStart
+		str += cnf.v("BoundaryMapStart")
 		//str += "<can't iterate on maps>"
 		keys := val.MapKeys()
 		for i, _ := range keys {
 			if i > 0 {
-				str += global.SepElem
+				str += cnf.v("SepElem")
 			}
-			str += valueToString(keys[i], style)
-			str += global.SepKeyValue
-			str += valueToString(val.MapIndex(keys[i]), style)
+			str += valueToString(keys[i], style, cnf)
+			str += cnf.v("SepKeyValue")
+			str += valueToString(val.MapIndex(keys[i]), style, cnf)
 		}
-		str += global.BoundaryMapEnd
+		str += cnf.v("BoundaryMapEnd")
 		return str
 	case Chan:
 		if style == StringStyleLong {
@@ -248,37 +221,37 @@ func valueToString(val Value, style StringStyle) string {
 		if style == StringStyleLong {
 			str += t.String()
 		}
-		str += global.BoundaryStructStart
+		str += cnf.v("BoundaryStructStart")
 		for i, n := 0, v.NumField(); i < n; i++ {
 			if i > 0 {
-				str += global.SepField
+				str += cnf.v("SepField")
 			}
 			if style == StringStyleLong || style == StringStyleMedium {
 				str += val.Type().Field(i).Name
-				str += global.SepKeyValue
+				str += cnf.v("SepKeyValue")
 			}
-			str += valueToString(v.Field(i), style)
+			str += valueToString(v.Field(i), style, cnf)
 		}
-		str += global.BoundaryStructEnd
+		str += cnf.v("BoundaryStructEnd")
 		return str
 	case Interface:
 		//t := ""
 		if style == StringStyleLong {
-			str += typ.String() + global.BoundaryInterfaceStart
+			str += typ.String() + cnf.v("BoundaryInterfaceStart")
 		}
-		str += valueToString(val.Elem(), style)
+		str += valueToString(val.Elem(), style, cnf)
 		if style == StringStyleLong {
-			str += global.BoundaryInterfaceEnd
+			str += cnf.v("BoundaryInterfaceEnd")
 		}
 		return str
 	case Func:
 		v := val
 		if style == StringStyleLong {
-			str += typ.String() + global.BoundaryPointerFuncStart
+			str += typ.String() + cnf.v("BoundaryPointerFuncStart")
 		}
 		str += strconv.FormatUint(uint64(v.Pointer()), 10)
 		if style == StringStyleLong {
-			str += global.BoundaryPointerFuncEnd
+			str += cnf.v("BoundaryPointerFuncEnd")
 		}
 		return str
 	default:

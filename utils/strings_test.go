@@ -131,6 +131,7 @@ func TestConfig(t *testing.T) {
 		expected string
 	}{
 		{true, `true`},
+		{map[string]int{"a":1, "b":2}, `{a=1-b=2}`},
 		{[]int{1, 2, 3, 4, 5}, `1-2-3-4-5`},
 		{0xFA, `250`},
 	}
