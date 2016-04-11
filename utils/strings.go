@@ -29,27 +29,99 @@ func ToJson(obj interface{}) string {
 	return string(result)
 }
 
-// ReflectToString return the string format of the given argument,
-// the default style is StyleMedium
+// ToString return the common string format of the obj according
+// to the given arguments
 //
-// the long style may be a very long format like following:
+// by default obj.ToString() will be called if this method exists.
+// otherwise we will call ReflectToString() to get it's string
+// representation
+//
+// the args please refer to the ReflectToString() function.
+func ToString(obj interface{}, args ...interface{}) string {
+	if v, ok := obj.(fmt.Stringer); ok {
+		return v.String()
+	}
+	return ReflectToString(obj, args)
+}
+
+const (
+	commaAndSpace = ", "
+	comma = ","
+	equals = "="
+)
+
+type Conf struct {
+	SepElem     string
+	SepField    string
+	SepKeyValue string
+}
+
+var elemSep = comma
+var fieldSep = commaAndSpace
+var keyValueSep = equals
+
+func setElemSep(sep string) {
+	if sep != "" {
+		elemSep = sep
+	}
+}
+
+func setFieldSep(sep string) {
+	if sep != "" {
+		fieldSep = sep
+	}
+}
+
+func setKeyValueSep(sep string) {
+	if sep != "" {
+		keyValueSep = sep
+	}
+}
+
+// ReflectToString return the string formatted by the given argument,
+// the args may be one or two
+//
+// the first argument is the print style, and it's default value is
+// StyleMedium. the second argument is the style configuration.
+//
+// The long style may be a very long format like following:
 //
 //      Type{name=value}
 //
-// and the medium style would like:
+// it's some different from fmt.Printf("%#v\n", value),
+// it's separated by comma and equal
+//
+// Then, the medium style would like:
 //
 //      {key=value}
 //
-// otherwise the short format will only print the value but no type
+// it's some different from fmt.Printf("%+v\n", value),
+// it's separated by comma and equal
+//
+// Otherwise the short format will only print the value but no type
 // and name information.
 //
 // since recursive call, this method would be pretty slow, so if you
 // use it to print log, may be you need to check if the log level is
 // enabled first
-func ReflectToString(obj interface{}, args ...Style) string {
+//
+// examples:
+//
+//   - ReflectToString(input)
+//   - ReflectToString(input, StyleLong)
+//   - ReflectToString(input, StyleMedium, Conf{SepElem:";", SepField:",", SepKeyValue:":"})
+//   - ReflectToString(input, StyleLong, Conf{SepField:","})
+func ReflectToString(obj interface{}, args ...interface{}) string {
 	style := StyleMedium
-	if len(args) > 0 {
-		style = args[0]
+	switch len(args) {
+	case 1:
+		style = args[0].(Style)
+	case 2:
+		style = args[0].(Style)
+		cnf := args[1].(Conf)
+		setElemSep(cnf.SepElem)
+		setFieldSep(cnf.SepField)
+		setKeyValueSep(cnf.SepKeyValue)
 	}
 
 	var result string
@@ -94,29 +166,31 @@ func valueToString(val Value, style Style) string {
 		v := val
 		if style == StyleLong {
 			str = typ.String() + "("
-		} else {
+		}/* else {
 			str = "("
-		}
+		}*/
 		if v.IsNil() {
 			str += "0"
 		} else {
 			str += "&" + valueToString(v.Elem(), style)
 		}
-		str += ")"
+		if style == StyleLong {
+			str += ")"
+		}
 		return str
 	case Array, Slice:
 		v := val
 		if style == StyleLong {
 			str += typ.String()
 		}
-		str += "{"
+		str += "["
 		for i := 0; i < v.Len(); i++ {
 			if i > 0 {
-				str += ", "
+				str += elemSep
 			}
 			str += valueToString(v.Index(i), style)
 		}
-		str += "}"
+		str += "]"
 		return str
 	case Map:
 		t := typ
@@ -128,10 +202,10 @@ func valueToString(val Value, style Style) string {
 		keys := val.MapKeys()
 		for i, _ := range keys {
 			if i > 0 {
-				str += ","
+				str += elemSep
 			}
 			str += valueToString(keys[i], style)
-			str += "="
+			str += keyValueSep
 			str += valueToString(val.MapIndex(keys[i]), style)
 		}
 		str += "}"
@@ -150,10 +224,10 @@ func valueToString(val Value, style Style) string {
 		str += "{"
 		for i, n := 0, v.NumField(); i < n; i++ {
 			if i > 0 {
-				str += ", "
+				str += fieldSep
 			}
 			str += val.Type().Field(i).Name
-			str += "="
+			str += keyValueSep
 			str += valueToString(v.Field(i), style)
 		}
 		str += "}"
@@ -161,16 +235,26 @@ func valueToString(val Value, style Style) string {
 	case Interface:
 		t := ""
 		if style == StyleLong{
-			t = typ.String()
+			t += typ.String()
+			t += "("
 		}
-		return t + "(" + valueToString(val.Elem(), style) + ")"
+		t += valueToString(val.Elem(), style)
+		if style == StyleLong{
+			t += ")"
+		}
+		return t
 	case Func:
 		v := val
 		t := ""
 		if style == StyleLong{
-			t = typ.String()
+			t += typ.String()
+			t += "("
 		}
-		return t + "(" + strconv.FormatUint(uint64(v.Pointer()), 10) + ")"
+		t += strconv.FormatUint(uint64(v.Pointer()), 10)
+		if style == StyleLong{
+			t += ")"
+		}
+		return t
 	default:
 		panic("valueToString: can't print type " + typ.String())
 	}
