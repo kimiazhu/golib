@@ -10,12 +10,12 @@ import (
 	"strconv"
 )
 
-type Style int
+type StringStyle int
 
 const (
-	StyleShort Style = iota
-	StyleMedium
-	StyleLong
+	StringStyleShort StringStyle = iota
+	StringStyleMedium
+	StringStyleLong
 )
 
 // ToJson return the json format of the obj
@@ -60,7 +60,7 @@ const (
 	NONE = "<none>"
 )
 
-type Conf struct {
+type StringConf struct {
 	SepElem     string
 	SepField    string
 	SepKeyValue string
@@ -77,7 +77,7 @@ type Conf struct {
 	BoundaryInterfaceEnd       string
 }
 
-var global *Conf = &Conf{
+var global *StringConf = &StringConf{
 	SepElem:     comma,
 	SepField:    commaAndSpace,
 	SepKeyValue: equals,
@@ -103,7 +103,7 @@ var global *Conf = &Conf{
 //          BoundaryArrayAndSliceStart: NONE, // DO NOT SET TO: ""
 //          BoundaryArrayAndSliceEnd: NONE, // DO NOT SET TO: ""
 //      }
-func updateConfig(conf *Conf) {
+func updateConfig(conf *StringConf) {
 	arg := ValueOf(conf).Elem()
 	gcnf := ValueOf(global).Elem()
 	for i := 0; i < arg.NumField(); i++ {
@@ -146,17 +146,17 @@ func updateConfig(conf *Conf) {
 // examples:
 //
 //   - ReflectToString(input)
-//   - ReflectToString(input, StyleLong)
-//   - ReflectToString(input, StyleMedium, &Conf{SepElem:";", SepField:",", SepKeyValue:":"})
-//   - ReflectToString(input, StyleLong, &Conf{SepField:","})
+//   - ReflectToString(input, StringStyleLong)
+//   - ReflectToString(input, StringStyleMedium, &StringConf{SepElem:";", SepField:",", SepKeyValue:":"})
+//   - ReflectToString(input, StringStyleLong, &StringConf{SepField:","})
 func ReflectToString(obj interface{}, args ...interface{}) string {
-	style := StyleMedium
+	style := StringStyleMedium
 	switch len(args) {
 	case 1:
-		style = args[0].(Style)
+		style = args[0].(StringStyle)
 	case 2:
-		style = args[0].(Style)
-		cnf := args[1].(*Conf)
+		style = args[0].(StringStyle)
+		cnf := args[1].(*StringConf)
 		updateConfig(cnf)
 	}
 
@@ -164,7 +164,7 @@ func ReflectToString(obj interface{}, args ...interface{}) string {
 }
 
 // valueToString recursively print all the value
-func valueToString(val Value, style Style) string {
+func valueToString(val Value, style StringStyle) string {
 	//if style == StyleShort {
 	//	return "<not suitable for short style>"
 	//}
@@ -193,7 +193,7 @@ func valueToString(val Value, style Style) string {
 		}
 	case Ptr:
 		v := val
-		if style == StyleLong {
+		if style == StringStyleLong {
 			str += typ.String() + global.BoundaryPointerFuncStart
 		}
 		if v.IsNil() {
@@ -201,13 +201,13 @@ func valueToString(val Value, style Style) string {
 		} else {
 			str += "&" + valueToString(v.Elem(), style)
 		}
-		if style == StyleLong {
+		if style == StringStyleLong {
 			str += global.BoundaryPointerFuncEnd
 		}
 		return str
 	case Array, Slice:
 		v := val
-		if style == StyleLong {
+		if style == StringStyleLong {
 			str += typ.String()
 		}
 		str += global.BoundaryArrayAndSliceStart
@@ -221,7 +221,7 @@ func valueToString(val Value, style Style) string {
 		return str
 	case Map:
 		t := typ
-		if style == StyleLong {
+		if style == StringStyleLong {
 			str += t.String()
 		}
 		str += global.BoundaryMapStart
@@ -238,14 +238,14 @@ func valueToString(val Value, style Style) string {
 		str += global.BoundaryMapEnd
 		return str
 	case Chan:
-		if style == StyleLong {
+		if style == StringStyleLong {
 			str += typ.String()
 		}
 		return str
 	case Struct:
 		t := typ
 		v := val
-		if style == StyleLong {
+		if style == StringStyleLong {
 			str += t.String()
 		}
 		str += global.BoundaryStructStart
@@ -253,7 +253,7 @@ func valueToString(val Value, style Style) string {
 			if i > 0 {
 				str += global.SepField
 			}
-			if style == StyleLong || style == StyleMedium {
+			if style == StringStyleLong || style == StringStyleMedium {
 				str += val.Type().Field(i).Name
 				str += global.SepKeyValue
 			}
@@ -263,21 +263,21 @@ func valueToString(val Value, style Style) string {
 		return str
 	case Interface:
 		//t := ""
-		if style == StyleLong {
+		if style == StringStyleLong {
 			str += typ.String() + global.BoundaryInterfaceStart
 		}
 		str += valueToString(val.Elem(), style)
-		if style == StyleLong {
+		if style == StringStyleLong {
 			str += global.BoundaryInterfaceEnd
 		}
 		return str
 	case Func:
 		v := val
-		if style == StyleLong {
+		if style == StringStyleLong {
 			str += typ.String() + global.BoundaryPointerFuncStart
 		}
 		str += strconv.FormatUint(uint64(v.Pointer()), 10)
-		if style == StyleLong {
+		if style == StringStyleLong {
 			str += global.BoundaryPointerFuncEnd
 		}
 		return str

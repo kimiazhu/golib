@@ -48,7 +48,7 @@ func TestReflectToStringLong(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		if got := ReflectToString(test.input, StyleLong); got != test.expected {
+		if got := ReflectToString(test.input, StringStyleLong); got != test.expected {
 			t.Errorf("ReflectToString(%v), expect: %v, but got: %v", test.input, test.expected, got)
 		}
 	}
@@ -119,7 +119,7 @@ func TestReflectToStringShort(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		if got := ReflectToString(test.input, StyleShort, &Conf{SepElem: ";"}); got != test.expected {
+		if got := ReflectToString(test.input, StringStyleShort, &StringConf{SepElem: ";"}); got != test.expected {
 			t.Errorf("ReflectToString(%v), expect: %v, but got: %v", test.input, test.expected, got)
 		}
 	}
@@ -135,9 +135,9 @@ func TestConfig(t *testing.T) {
 		{0xFA, `250`},
 	}
 
-	c := &Conf{SepElem: "-", BoundaryArrayAndSliceStart: NONE, BoundaryArrayAndSliceEnd: NONE}
+	c := &StringConf{SepElem: "-", BoundaryArrayAndSliceStart: NONE, BoundaryArrayAndSliceEnd: NONE}
 	for _, test := range tests {
-		if got := ReflectToString(test.input, StyleShort, c); got != test.expected {
+		if got := ReflectToString(test.input, StringStyleShort, c); got != test.expected {
 			t.Errorf("ReflectToString(%v), expect: %v, but got: %v", test.input, test.expected, got)
 		}
 	}
