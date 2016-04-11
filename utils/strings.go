@@ -5,9 +5,9 @@ package util
 
 import (
 	"encoding/json"
-	"strconv"
 	"fmt"
 	. "reflect"
+	"strconv"
 )
 
 type Style int
@@ -46,8 +46,8 @@ func ToString(obj interface{}, args ...interface{}) string {
 
 const (
 	commaAndSpace = ", "
-	comma = ","
-	equals = "="
+	comma         = ","
+	equals        = "="
 )
 
 type Conf struct {
@@ -166,7 +166,7 @@ func valueToString(val Value, style Style) string {
 		v := val
 		if style == StyleLong {
 			str = typ.String() + "("
-		}/* else {
+		} /* else {
 			str = "("
 		}*/
 		if v.IsNil() {
@@ -194,7 +194,7 @@ func valueToString(val Value, style Style) string {
 		return str
 	case Map:
 		t := typ
-		if style == StyleLong{
+		if style == StyleLong {
 			str = t.String()
 		}
 		str += "{"
@@ -234,24 +234,24 @@ func valueToString(val Value, style Style) string {
 		return str
 	case Interface:
 		t := ""
-		if style == StyleLong{
+		if style == StyleLong {
 			t += typ.String()
 			t += "("
 		}
 		t += valueToString(val.Elem(), style)
-		if style == StyleLong{
+		if style == StyleLong {
 			t += ")"
 		}
 		return t
 	case Func:
 		v := val
 		t := ""
-		if style == StyleLong{
+		if style == StyleLong {
 			t += typ.String()
 			t += "("
 		}
 		t += strconv.FormatUint(uint64(v.Pointer()), 10)
-		if style == StyleLong{
+		if style == StyleLong {
 			t += ")"
 		}
 		return t
