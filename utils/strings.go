@@ -116,8 +116,8 @@ func updateConfig(conf *Conf) {
 	}
 }
 
-// ReflectToString return the string formatted by the given argument,
-// the args may be one or two
+// ReflectToString return the string formatted by the given arguments,
+// the number of optional arguments can be one or two
 //
 // the first argument is the print style, and it's default value is
 // StyleMedium. the second argument is the style configuration pointer.
@@ -127,21 +127,21 @@ func updateConfig(conf *Conf) {
 //      Type{name=value}
 //
 // it's some different from fmt.Printf("%#v\n", value),
-// it's separated by comma and equal
+// and separated by comma and equal by default.
 //
 // Then, the medium style would like:
 //
 //      {key=value}
 //
 // it's some different from fmt.Printf("%+v\n", value),
-// it's separated by comma and equal
+// and separated by comma and equal by default.
 //
 // Otherwise the short format will only print the value but no type
 // and name information.
 //
-// since recursive call, this method would be pretty slow, so if you
+// since recursive calling, this method would be pretty slow, so if you
 // use it to print log, may be you need to check if the log level is
-// enabled first
+// enabled firstly
 //
 // examples:
 //
