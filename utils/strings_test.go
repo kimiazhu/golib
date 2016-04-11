@@ -88,3 +88,57 @@ func TestReflectToStringMedium(t *testing.T) {
 		}
 	}
 }
+
+// since the map is unsorted, the last one may be different from expected
+func TestReflectToStringShort(t *testing.T) {
+	var tests = []struct {
+		input    interface{}
+		expected string
+	}{
+		{true, `true`},
+		{32.68, `32.68`},
+		{0xFA, `250`},
+		{[]int{1,2,3,4,5}, `[1;2;3;4;5]`},
+		{struct{ v string }{v: "ss"}, `{ss}`},
+		{struct{ v int }{v: -1}, `{-1}`},
+		{struct {
+			v1 float64
+			V2 bool
+		}{v1: 1.01, V2: true}, `{1.01, true}`},
+		{struct {
+			v1 float64
+			V2 []string
+		}{v1: 1.01, V2: []string{"a", "v"}}, `{1.01, [a;v]}`},
+		{struct {
+			v1 TestType
+			V2 []interface{}
+		}{v1: 2, V2: []interface{}{"a", 1, true, struct{ v TestType }{-1}}},
+			`{2, [a;1;true;{-1}]}`},
+		{TestStruct{V: "valV", v2: []TestType{9, 8, 7}, V3: map[string]TestStructA{"k2": TestStructA{[]int{0, 1, 2}}, "k1": TestStructA{[]int{3, 4, 5}}}},
+			`{valV, {k2={[0;1;2]};k1={[3;4;5]}}, [9;8;7]}`},
+	}
+
+	for _, test := range tests {
+		if got := ReflectToString(test.input, StyleShort, &Conf{SepElem:";"}); got != test.expected {
+			t.Errorf("ReflectToString(%v), expect: %v, but got: %v", test.input, test.expected, got)
+		}
+	}
+}
+
+func TestConfig(t *testing.T) {
+	var tests = []struct {
+		input    interface{}
+		expected string
+	}{
+		{true, `true`},
+		{[]int{1,2,3,4,5}, `1-2-3-4-5`},
+		{0xFA, `250`},
+	}
+
+	c := &Conf{SepElem:"-", BoundaryArrayAndSliceStart:NONE, BoundaryArrayAndSliceEnd:NONE}
+	for _, test := range tests {
+		if got := ReflectToString(test.input, StyleShort, c); got != test.expected {
+			t.Errorf("ReflectToString(%v), expect: %v, but got: %v", test.input, test.expected, got)
+		}
+	}
+}
