@@ -57,43 +57,52 @@ const (
 	//          BoundaryArrayAndSliceStart: NONE, // NOT ""
 	//          BoundaryArrayAndSliceEnd: NONE, // NOT ""
 	//      }
-	NONE         = "<none>"
+	NONE = "<none>"
 )
 
 type Conf struct {
-	SepElem      string
-	SepField     string
-	SepKeyValue  string
+	SepElem     string
+	SepField    string
+	SepKeyValue string
 
-	BoundaryStructStart   string
-	BoundaryStructEnd   string
-	BoundaryMapStart      string
-	BoundaryMapEnd      string
+	BoundaryStructStart        string
+	BoundaryStructEnd          string
+	BoundaryMapStart           string
+	BoundaryMapEnd             string
 	BoundaryArrayAndSliceStart string
-	BoundaryArrayAndSliceEnd string
-	BoundaryPointerFuncStart string
-	BoundaryPointerFuncEnd string
-	BoundaryInterfaceStart string
-	BoundaryInterfaceEnd string
+	BoundaryArrayAndSliceEnd   string
+	BoundaryPointerFuncStart   string
+	BoundaryPointerFuncEnd     string
+	BoundaryInterfaceStart     string
+	BoundaryInterfaceEnd       string
 }
 
-var global *Conf = &Conf {
-	SepElem: comma,
-	SepField: commaAndSpace,
+var global *Conf = &Conf{
+	SepElem:     comma,
+	SepField:    commaAndSpace,
 	SepKeyValue: equals,
 
-	BoundaryStructStart : "{",
-	BoundaryStructEnd : "}",
-	BoundaryMapStart : "{",
-	BoundaryMapEnd : "}",
-	BoundaryArrayAndSliceStart : "[",
-	BoundaryArrayAndSliceEnd : "]",
-	BoundaryPointerFuncStart : "(",
-	BoundaryPointerFuncEnd : ")",
-	BoundaryInterfaceStart : "(",
-	BoundaryInterfaceEnd : ")",
+	BoundaryStructStart:        "{",
+	BoundaryStructEnd:          "}",
+	BoundaryMapStart:           "{",
+	BoundaryMapEnd:             "}",
+	BoundaryArrayAndSliceStart: "[",
+	BoundaryArrayAndSliceEnd:   "]",
+	BoundaryPointerFuncStart:   "(",
+	BoundaryPointerFuncEnd:     ")",
+	BoundaryInterfaceStart:     "(",
+	BoundaryInterfaceEnd:       ")",
 }
 
+// updateConfig will update the global configuration using the given conf.
+// any empty config field will be ignored, so if you really want to set a
+// config value to be an empty string, you need to set it to be const NONE, l
+// ike this:
+//
+//      &Conf {
+//          BoundaryArrayAndSliceStart: NONE, // DO NOT SET TO: ""
+//          BoundaryArrayAndSliceEnd: NONE, // DO NOT SET TO: ""
+//      }
 func updateConfig(conf *Conf) {
 	arg := ValueOf(conf).Elem()
 	gcnf := ValueOf(global).Elem()

@@ -5,9 +5,9 @@ package stack
 
 import (
 	"bytes"
-	"runtime"
 	"fmt"
 	"io/ioutil"
+	"runtime"
 )
 
 var (

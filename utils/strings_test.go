@@ -98,7 +98,7 @@ func TestReflectToStringShort(t *testing.T) {
 		{true, `true`},
 		{32.68, `32.68`},
 		{0xFA, `250`},
-		{[]int{1,2,3,4,5}, `[1;2;3;4;5]`},
+		{[]int{1, 2, 3, 4, 5}, `[1;2;3;4;5]`},
 		{struct{ v string }{v: "ss"}, `{ss}`},
 		{struct{ v int }{v: -1}, `{-1}`},
 		{struct {
@@ -119,7 +119,7 @@ func TestReflectToStringShort(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		if got := ReflectToString(test.input, StyleShort, &Conf{SepElem:";"}); got != test.expected {
+		if got := ReflectToString(test.input, StyleShort, &Conf{SepElem: ";"}); got != test.expected {
 			t.Errorf("ReflectToString(%v), expect: %v, but got: %v", test.input, test.expected, got)
 		}
 	}
@@ -131,11 +131,11 @@ func TestConfig(t *testing.T) {
 		expected string
 	}{
 		{true, `true`},
-		{[]int{1,2,3,4,5}, `1-2-3-4-5`},
+		{[]int{1, 2, 3, 4, 5}, `1-2-3-4-5`},
 		{0xFA, `250`},
 	}
 
-	c := &Conf{SepElem:"-", BoundaryArrayAndSliceStart:NONE, BoundaryArrayAndSliceEnd:NONE}
+	c := &Conf{SepElem: "-", BoundaryArrayAndSliceStart: NONE, BoundaryArrayAndSliceEnd: NONE}
 	for _, test := range tests {
 		if got := ReflectToString(test.input, StyleShort, c); got != test.expected {
 			t.Errorf("ReflectToString(%v), expect: %v, but got: %v", test.input, test.expected, got)
