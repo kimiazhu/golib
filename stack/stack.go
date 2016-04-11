@@ -1,4 +1,4 @@
-// Description: log4go
+// Description: stack/stack.go will print the call stack information
 // Author: ZHU HAIHUA
 // Since: 2016-03-02 10:58
 package stack

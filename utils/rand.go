@@ -1,4 +1,4 @@
-// Description: utils 工具包 rand.go 提供随机数相关服务
+// Description: utils/rand.go random toolkits
 // Author: ZHU HAIHUA
 // Since: 2016-02-26 19:08
 package util
@@ -9,7 +9,8 @@ import (
 
 var charTable = []rune("abcdefghijkmnpqrstuvwxyz23456789")
 
-// RandStrN 返回长度为N的随机字符和数字组合,其中不包含容易被混淆的[0/1/o/l]四个字符
+// RandStrN return a random lower case string which length is n.
+// this string will NOT contain characters [0/1/o/l]
 func RandStrN(n int) string {
 	random := make([]byte, n)
 	result := make([]rune, n)
