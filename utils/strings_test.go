@@ -135,7 +135,7 @@ func TestConfig(t *testing.T) {
 		{0xFA, `250`},
 	}
 
-	c := &StringConf{SepElem: "-", BoundaryArrayAndSliceStart: NONE, BoundaryArrayAndSliceEnd: NONE}
+	c := &StringConf{SepElem: "-", BoundaryArraySliceStart: NONE, BoundaryArraySliceEnd: NONE}
 	for _, test := range tests {
 		if got := ReflectToString(test.input, StringStyleShort, c); got != test.expected {
 			t.Errorf("ReflectToString(%v), expect: %v, but got: %v", test.input, test.expected, got)

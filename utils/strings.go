@@ -65,16 +65,16 @@ type StringConf struct {
 	SepField    string
 	SepKeyValue string
 
-	BoundaryStructStart        string
-	BoundaryStructEnd          string
-	BoundaryMapStart           string
-	BoundaryMapEnd             string
-	BoundaryArrayAndSliceStart string
-	BoundaryArrayAndSliceEnd   string
-	BoundaryPointerFuncStart   string
-	BoundaryPointerFuncEnd     string
-	BoundaryInterfaceStart     string
-	BoundaryInterfaceEnd       string
+	BoundaryStructStart      string
+	BoundaryStructEnd        string
+	BoundaryMapStart         string
+	BoundaryMapEnd           string
+	BoundaryArraySliceStart  string
+	BoundaryArraySliceEnd    string
+	BoundaryPointerFuncStart string
+	BoundaryPointerFuncEnd   string
+	BoundaryInterfaceStart   string
+	BoundaryInterfaceEnd     string
 }
 
 var global *StringConf = &StringConf{
@@ -82,16 +82,16 @@ var global *StringConf = &StringConf{
 	SepField:    commaAndSpace,
 	SepKeyValue: equals,
 
-	BoundaryStructStart:        "{",
-	BoundaryStructEnd:          "}",
-	BoundaryMapStart:           "{",
-	BoundaryMapEnd:             "}",
-	BoundaryArrayAndSliceStart: "[",
-	BoundaryArrayAndSliceEnd:   "]",
-	BoundaryPointerFuncStart:   "(",
-	BoundaryPointerFuncEnd:     ")",
-	BoundaryInterfaceStart:     "(",
-	BoundaryInterfaceEnd:       ")",
+	BoundaryStructStart:      "{",
+	BoundaryStructEnd:        "}",
+	BoundaryMapStart:         "{",
+	BoundaryMapEnd:           "}",
+	BoundaryArraySliceStart:  "[",
+	BoundaryArraySliceEnd:    "]",
+	BoundaryPointerFuncStart: "(",
+	BoundaryPointerFuncEnd:   ")",
+	BoundaryInterfaceStart:   "(",
+	BoundaryInterfaceEnd:     ")",
 }
 
 // updateConfig will update the global configuration using the given conf.
@@ -210,14 +210,14 @@ func valueToString(val Value, style StringStyle) string {
 		if style == StringStyleLong {
 			str += typ.String()
 		}
-		str += global.BoundaryArrayAndSliceStart
+		str += global.BoundaryArraySliceStart
 		for i := 0; i < v.Len(); i++ {
 			if i > 0 {
 				str += global.SepElem
 			}
 			str += valueToString(v.Index(i), style)
 		}
-		str += global.BoundaryArrayAndSliceEnd
+		str += global.BoundaryArraySliceEnd
 		return str
 	case Map:
 		t := typ
