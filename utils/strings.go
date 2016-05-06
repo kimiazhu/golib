@@ -47,9 +47,9 @@ func ToString(obj interface{}, args ...interface{}) string {
 const (
 	// the NONE used to set an empty boundary or separator.
 	// e.g: you want to set the output of slice with no boundary,
-	// you NEED to set Conf as:
+	// you NEED to set StringConf as:
 	//
-	//      &Conf {
+	//      &StringConf {
 	//          BoundaryArrayAndSliceStart: NONE, // NOT ""
 	//          BoundaryArrayAndSliceEnd: NONE, // NOT ""
 	//      }
@@ -138,9 +138,6 @@ func ReflectToString(obj interface{}, args ...interface{}) string {
 
 // valueToString recursively print all the value
 func valueToString(val Value, style StringStyle, cnf *StringConf) string {
-	//if style == StyleShort {
-	//	return "<not suitable for short style>"
-	//}
 	var str string
 	if !val.IsValid() {
 		return "<zero Value>"
