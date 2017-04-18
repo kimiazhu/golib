@@ -15,6 +15,7 @@
 package util
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/json"
@@ -153,7 +154,10 @@ func SignVerify(data map[string]interface{}, secret string, sign string) bool {
 // 验证通过返回true，否则返回false
 func SignVerify2(jsonStr string, secret string) bool {
 	maps := make(map[string]interface{})
-	err := json.Unmarshal([]byte(jsonStr), &maps)
+	br := bytes.NewReader([]byte(jsonStr))
+	jd := json.NewDecoder(br)
+	jd.UseNumber()
+	err := jd.Decode(&maps)
 	if err != nil {
 		log4go.Error("args is not a json!", jsonStr)
 		return false
