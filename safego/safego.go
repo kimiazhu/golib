@@ -60,3 +60,17 @@ func Go(f func(), handler... Handler) {
 		f()
 	}()
 }
+
+// GoWithHandler will run function f(args... interface{}) in a go routines.
+// And handler the panic if occur with given handler.
+func GoWithHandler(f func(args... interface{}), handler Handler, args... interface{}) {
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				handler(r)
+			}
+		}()
+
+		f(args...)
+	}()
+}
