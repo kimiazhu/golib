@@ -69,7 +69,7 @@ func formatForSign(data map[string]interface{}) string {
 		case interface{}:
 			validKeys = append(validKeys, k)
 		default:
-			log4go.Warn("Unknown type [%v], will not sign this value!", reflect.TypeOf(data[k]).Kind())
+			log4go.Warn("Unknown type [%v], will not sign this value!", reflect.TypeOf(data[k]))
 		}
 
 	}
