@@ -20,7 +20,7 @@ import (
 	"crypto/sha1"
 	"encoding/json"
 	"fmt"
-	"github.com/kimiazhu/log4go"
+	"log"
 	"reflect"
 	"sort"
 	"strings"
@@ -50,10 +50,8 @@ func Sign(input, key string) string {
 // 将Map格式化成待签名的字符串，
 // 注意此方法会滤掉map中value为空的所有键值对
 func formatForSign(data map[string]interface{}) string {
-	log4go.Debug("origin data is: %v", data)
 	if data == nil {
-		log4go.Error("args could not be nil!!!")
-		return ""
+		panic("invalid arguments")
 	}
 	var validKeys []string
 	for k := range data {
@@ -69,7 +67,7 @@ func formatForSign(data map[string]interface{}) string {
 		case interface{}:
 			validKeys = append(validKeys, k)
 		default:
-			log4go.Warn("Unknown type [%v], will not sign this value!", reflect.TypeOf(data[k]))
+			log.Printf("Unknown type [%v], will not sign this value!\n", reflect.TypeOf(data[k]))
 		}
 
 	}
@@ -96,11 +94,11 @@ func formatForSign(data map[string]interface{}) string {
 // 获取签名串，不包含其他任何东西，仅仅是签名字符串本身
 func GetSignStr(data map[string]interface{}, key string) (string, error) {
 	if data == nil || key == "" {
-		log4go.Error("args could not be nil!!!")
+		log.Println("args could not be nil!!!")
 		return "", SignError{Code: -1, Msg: "Arguments Error"}
 	}
 	dataForSign := formatForSign(data)
-	log4go.Debug(fmt.Sprintf("data for sign: %s", dataForSign))
+	log.Printf("data for sign: %s\n", dataForSign)
 	return Sign(dataForSign, key), nil
 }
 
@@ -109,11 +107,11 @@ func GetSignStr(data map[string]interface{}, key string) (string, error) {
 // 主要用于GET请求
 func BuildSignedStr(data map[string]interface{}, key string) (string, error) {
 	if data == nil || key == "" {
-		log4go.Error("args could not be nil!!!")
+		log.Println("args could not be nil!!!")
 		return "", SignError{Code: -1, Msg: "Arguments Error"}
 	}
 	dataForSign := formatForSign(data)
-	log4go.Debug(fmt.Sprintf("data for sign: %s", dataForSign))
+	log.Printf("data for sign: %s\n", dataForSign)
 	sn := Sign(dataForSign, key)
 	return dataForSign + "&sign=" + sn, nil
 }
@@ -121,15 +119,15 @@ func BuildSignedStr(data map[string]interface{}, key string) (string, error) {
 // 构造已签名的Json格式的字符串，主要用于POST请求的Body
 func BuildSignedJsonStr(data map[string]interface{}, key string) (string, error) {
 	if data == nil || key == "" {
-		log4go.Error("args could not be nil!!!")
+		log.Println("args could not be nil!!!")
 		return "", SignError{Code: -1, Msg: "Arguments Error"}
 	}
 	dataForSign := formatForSign(data)
-	log4go.Debug(fmt.Sprintf("data for sign: %s", dataForSign))
+	log.Printf("data for sign: %s\n", dataForSign)
 	data["sign"] = Sign(dataForSign, key)
 	js, jsErr := json.Marshal(data)
 	if jsErr != nil {
-		log4go.Error(fmt.Sprintf("format map to Json error"))
+		log.Println("format map to Json error")
 		return "", SignError{Code: -1, Msg: "Error format request to Json"}
 	}
 	return string(js), nil
@@ -138,7 +136,7 @@ func BuildSignedJsonStr(data map[string]interface{}, key string) (string, error)
 // 签名校验，验证通过返回true，否则返回false
 func SignVerify(data map[string]interface{}, secret string, sign string) bool {
 	if data == nil || sign == "" {
-		log4go.Error("args could not be nil!!!")
+		log.Println("args could not be nil!!!")
 		return false
 	}
 	if data["sign"] != "" {
@@ -146,7 +144,7 @@ func SignVerify(data map[string]interface{}, secret string, sign string) bool {
 		delete(data, "sign")
 	}
 	signStr, _ := GetSignStr(data, secret)
-	log4go.Debug("verify result: orginSign=%s, correctSign=%s", sign, signStr)
+	log.Printf("verify result: orginSign=%s, correctSign=%s\n", sign, signStr)
 	return signStr == sign
 }
 
@@ -159,12 +157,12 @@ func SignVerify2(jsonStr string, secret string) bool {
 	jd.UseNumber()
 	err := jd.Decode(&maps)
 	if err != nil {
-		log4go.Error("args is not a json!", jsonStr)
+		log.Printf("args is not a json!\n", jsonStr)
 		return false
 	}
 
 	if originSign := maps["sign"]; originSign == nil {
-		log4go.Error("sign segment not found or is empty")
+		log.Println("sign segment not found or is empty")
 		return false
 	} else {
 		return SignVerify(maps, secret, originSign.(string))
